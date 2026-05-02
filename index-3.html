@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nexus Trading IA — Bots Automatiques</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --green:#39ff64;--green2:#00ffaa;--gold:#ffd700;
+      --green-dim:rgba(57,255,100,0.12);
+      --bg:#030a03;--card:#0a160a;--card2:#0d1a0d;
+      --white:#f0f0f0;--muted:rgba(240,240,240,0.4);
+      --red:#ff4444;--blue:#00d4ff;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--white);font-family:'Space Mono',monospace;overflow-x:hidden}
+
+    /* GRID BG */
+    body::before{content:'';position:fixed;inset:0;
+      background-image:linear-gradient(rgba(57,255,100,0.03) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(57,255,100,0.03) 1px,transparent 1px);
+      background-size:50px 50px;pointer-events:none;z-index:0}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;
+      background:rgba(3,10,3,0.85);backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(57,255,100,0.15);
+      padding:14px 24px;display:flex;align-items:center;gap:12px}
+    .nav-logo{display:flex;align-items:center;gap:10px}
+    .nav-icon{width:36px;height:36px;background:var(--green-dim);
+      border:1px solid rgba(57,255,100,0.4);border-radius:8px;
+      display:grid;place-items:center}
+    .nav-icon svg{width:18px;height:18px}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:15px;font-weight:900;letter-spacing:2px}
+    .nav-brand span{color:var(--green)}
+    .nav-live{margin-left:auto;display:flex;align-items:center;gap:6px;
+      font-size:10px;font-weight:700;letter-spacing:2px;color:var(--green);
+      background:var(--green-dim);border:1px solid rgba(57,255,100,0.3);
+      border-radius:999px;padding:5px 12px}
+    .dot{width:6px;height:6px;background:var(--green);border-radius:50%;
+      animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.4)}}
+
+    /* HERO */
+    .hero{position:relative;z-index:1;text-align:center;
+      padding:120px 24px 60px;max-width:600px;margin:0 auto}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;
+      font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+      color:var(--green);background:var(--green-dim);
+      border:1px solid rgba(57,255,100,0.25);border-radius:999px;
+      padding:6px 16px;margin-bottom:24px}
+    .hero h1{font-family:'Syne',sans-serif;font-size:clamp(36px,9vw,64px);
+      font-weight:900;line-height:1.05;margin-bottom:20px}
+    .hero h1 em{font-style:normal;color:var(--green)}
+    .hero p{font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:32px}
+    .hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .btn-primary{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;
+      letter-spacing:1px;padding:14px 28px;border-radius:12px;
+      background:var(--green);color:#030a03;border:none;cursor:pointer;
+      text-decoration:none;transition:transform 0.2s,box-shadow 0.2s}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(57,255,100,0.4)}
+    .btn-secondary{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;
+      letter-spacing:1px;padding:14px 28px;border-radius:12px;
+      background:transparent;color:var(--green);
+      border:1px solid rgba(57,255,100,0.4);cursor:pointer;
+      text-decoration:none;transition:all 0.2s}
+    .btn-secondary:hover{background:var(--green-dim)}
+
+    /* STATS */
+    .stats{position:relative;z-index:1;display:grid;
+      grid-template-columns:repeat(3,1fr);gap:16px;
+      max-width:600px;margin:0 auto;padding:0 24px 60px}
+    .stat{background:var(--card);border:1px solid rgba(57,255,100,0.15);
+      border-radius:16px;padding:20px;text-align:center}
+    .stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:900;color:var(--green)}
+    .stat-label{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1px}
+
+    /* BOTS */
+    .section{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:0 24px 60px}
+    .section-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:900;
+      margin-bottom:8px;text-align:center}
+    .section-title em{font-style:normal;color:var(--green)}
+    .section-sub{font-size:11px;color:var(--muted);text-align:center;
+      margin-bottom:32px;letter-spacing:1px}
+
+    .bots{display:flex;flex-direction:column;gap:16px}
+    .bot{background:var(--card);border:1px solid rgba(57,255,100,0.15);
+      border-radius:16px;padding:20px;display:flex;
+      flex-direction:column;gap:12px}
+    .bot-header{display:flex;align-items:center;justify-content:space-between}
+    .bot-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:800}
+    .bot-market{font-size:10px;letter-spacing:2px;color:var(--muted)}
+    .bot-perf{font-family:'Syne',sans-serif;font-size:22px;font-weight:900;color:var(--green)}
+    .bot-perf.neg{color:var(--red)}
+    .bot-bar-bg{height:6px;background:rgba(57,255,100,0.1);border-radius:999px;overflow:hidden}
+    .bot-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--green2));
+      border-radius:999px;transition:width 1s ease}
+    .bot-stats{display:flex;gap:16px}
+    .bot-stat{font-size:11px;color:var(--muted)}
+    .bot-stat strong{color:var(--white)}
+    .bot-pass{font-size:9px;letter-spacing:2px;text-transform:uppercase;
+      padding:3px 8px;border-radius:999px;background:var(--green-dim);
+      color:var(--green);border:1px solid rgba(57,255,100,0.2)}
+
+    /* LIVE TICKER */
+    .ticker-wrap{position:relative;z-index:1;overflow:hidden;
+      border-top:1px solid rgba(57,255,100,0.1);
+      border-bottom:1px solid rgba(57,255,100,0.1);
+      padding:12px 0;margin-bottom:60px;background:rgba(57,255,100,0.03)}
+    .ticker{display:flex;gap:40px;animation:ticker 20s linear infinite;white-space:nowrap}
+    .ticker-item{display:flex;align-items:center;gap:8px;font-size:12px}
+    .ticker-sym{font-weight:700;color:var(--green)}
+    .ticker-up{color:var(--green)}
+    .ticker-down{color:var(--red)}
+    @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+    /* PLANS */
+    .plans{display:flex;flex-direction:column;gap:20px}
+    .plan{background:var(--card);border:1px solid rgba(57,255,100,0.18);
+      border-radius:20px;padding:28px 24px;position:relative;overflow:hidden;
+      transition:border-color 0.3s,box-shadow 0.3s}
+    .plan:hover{border-color:rgba(57,255,100,0.4);box-shadow:0 0 40px rgba(57,255,100,0.08)}
+    .plan.popular{border-color:rgba(57,255,100,0.5);
+      box-shadow:0 0 50px rgba(57,255,100,0.12)}
+    .plan.elite{border-color:rgba(255,215,0,0.4);
+      box-shadow:0 0 50px rgba(255,215,0,0.08)}
+    .plan-glow{position:absolute;top:-60px;right:-60px;width:180px;height:180px;
+      border-radius:50%;pointer-events:none}
+    .plan.popular .plan-glow{background:radial-gradient(circle,rgba(57,255,100,0.12) 0%,transparent 70%)}
+    .plan.elite .plan-glow{background:radial-gradient(circle,rgba(255,215,0,0.1) 0%,transparent 70%)}
+    .plan-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .plan-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:900}
+    .plan-tag{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+      padding:4px 10px;border-radius:999px}
+    .tag-starter{color:var(--muted);background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)}
+    .tag-pro{color:var(--green);background:var(--green-dim);border:1px solid rgba(57,255,100,0.3)}
+    .tag-elite{color:var(--gold);background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3)}
+    .plan-price{font-family:'Syne',sans-serif;font-size:48px;font-weight:900;
+      line-height:1;margin-bottom:20px}
+    .plan.popular .plan-price{color:var(--green)}
+    .plan.elite .plan-price{color:var(--gold)}
+    .plan-price span{font-size:14px;color:var(--muted);font-weight:400}
+    .plan-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+    .plan-features li{font-size:12px;color:var(--muted);
+      display:flex;align-items:flex-start;gap:10px;line-height:1.5}
+    .plan-features li::before{content:'✓';color:var(--green);font-weight:700;
+      font-size:13px;flex-shrink:0;margin-top:1px}
+    .plan.elite .plan-features li::before{color:var(--gold)}
+    .pay-btn{display:block;width:100%;padding:16px;border:none;border-radius:12px;
+      font-family:'Syne',sans-serif;font-size:14px;font-weight:800;
+      letter-spacing:1px;text-decoration:none;text-align:center;
+      cursor:pointer;transition:transform 0.2s,box-shadow 0.2s}
+    .pay-btn:hover{transform:translateY(-2px)}
+    .btn-starter{background:rgba(57,255,100,0.08);color:var(--green);
+      border:1px solid rgba(57,255,100,0.3)}
+    .btn-starter:hover{background:rgba(57,255,100,0.15);box-shadow:0 4px 20px rgba(57,255,100,0.15)}
+    .btn-pro{background:var(--green);color:#030a03}
+    .btn-pro:hover{box-shadow:0 6px 30px rgba(57,255,100,0.5)}
+    .btn-elite{background:linear-gradient(135deg,var(--gold),#ffaa00);color:#030a03}
+    .btn-elite:hover{box-shadow:0 6px 30px rgba(255,215,0,0.4)}
+
+    /* SECURE */
+    .secure{position:relative;z-index:1;text-align:center;
+      padding:20px 24px 40px;font-size:11px;color:var(--muted)}
+    .secure-icons{display:flex;justify-content:center;gap:20px;margin-bottom:12px;flex-wrap:wrap}
+    .secure-item{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:1px}
+    .secure-item svg{width:14px;height:14px;color:var(--green)}
+
+    /* FOOTER */
+    footer{position:relative;z-index:1;
+      border-top:1px solid rgba(57,255,100,0.1);
+      padding:24px;text-align:center;font-size:11px;color:var(--muted)}
+    footer strong{color:var(--green)}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .hero{animation:fadeUp 0.6s ease both}
+    .stats{animation:fadeUp 0.8s ease both}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#39ff64" stroke-width="2" stroke-linecap="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+      </svg>
+    </div>
+    <span class="nav-brand">NEXUS <span>TRADING</span> IA</span>
+  </div>
+  <div class="nav-live"><div class="dot"></div>LIVE</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🤖 Bots IA Automatiques</div>
+  <h1>Tradez plus vite<br>avec <em>l'IA</em></h1>
+  <p>Bots algorithmiques ultra-performants sur Crypto, Forex et Actions.<br>Resultats en temps reel. Paiement securise via PayPal.</p>
+  <div class="hero-btns">
+    <a href="#plans" class="btn-primary">Choisir un Pass</a>
+    <a href="#bots" class="btn-secondary">Voir les Bots</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-val">+847%</div>
+    <div class="stat-label">RENDEMENT CUMULE</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">12</div>
+    <div class="stat-label">BOTS ACTIFS</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">98.2%</div>
+    <div class="stat-label">UPTIME</div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <div class="ticker-item"><span class="ticker-sym">BTC/USD</span><span class="ticker-up">+2.34%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">ETH/USD</span><span class="ticker-up">+1.87%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">EUR/USD</span><span class="ticker-down">-0.12%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">SOL/USD</span><span class="ticker-up">+5.43%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">AAPL</span><span class="ticker-up">+0.89%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">XRP/USD</span><span class="ticker-up">+3.21%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">GBP/USD</span><span class="ticker-down">-0.34%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">TSLA</span><span class="ticker-up">+1.56%</span></div>
+    <!-- duplicate for loop -->
+    <div class="ticker-item"><span class="ticker-sym">BTC/USD</span><span class="ticker-up">+2.34%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">ETH/USD</span><span class="ticker-up">+1.87%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">EUR/USD</span><span class="ticker-down">-0.12%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">SOL/USD</span><span class="ticker-up">+5.43%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">AAPL</span><span class="ticker-up">+0.89%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">XRP/USD</span><span class="ticker-up">+3.21%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">GBP/USD</span><span class="ticker-down">-0.34%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">TSLA</span><span class="ticker-up">+1.56%</span></div>
+  </div>
+</div>
+
+<!-- BOTS -->
+<section class="section" id="bots">
+  <h2 class="section-title">Bots <em>Actifs</em></h2>
+  <p class="section-sub">PERFORMANCES CE MOIS · MISE A JOUR EN TEMPS REEL</p>
+  <div class="bots">
+
+    <div class="bot">
+      <div class="bot-header">
+        <div>
+          <div class="bot-name">🤖 Bot Alpha — BTC/USD</div>
+          <div class="bot-market">CRYPTO · BINANCE</div>
+        </div>
+        <span class="bot-pass">STARTER+</span>
+      </div>
+      <div class="bot-perf">+34.7%</div>
+      <div class="bot-bar-bg"><div class="bot-bar" style="width:69%"></div></div>
+      <div class="bot-stats">
+        <div class="bot-stat">Trades: <strong>142</strong></div>
+        <div class="bot-stat">Win rate: <strong>73%</strong></div>
+        <div class="bot-stat">Drawdown: <strong>4.2%</strong></div>
+      </div>
+    </div>
+
+    <div class="bot">
+      <div class="bot-header">
+        <div>
+          <div class="bot-name">🤖 Bot Beta — ETH/USD</div>
+          <div class="bot-market">CRYPTO · BINANCE</div>
+        </div>
+        <span class="bot-pass">STARTER+</span>
+      </div>
+      <div class="bot-perf">+18.3%</div>
+      <div class="bot-bar-bg"><div class="bot-bar" style="width:36%"></div></div>
+      <div class="bot-stats">
+        <div class="bot-stat">Trades: <strong>98</strong></div>
+        <div class="bot-stat">Win rate: <strong>68%</strong></div>
+        <div class="bot-stat">Drawdown: <strong>3.1%</strong></div>
+      </div>
+    </div>
+
+    <div class="bot">
+      <div class="bot-header">
+        <div>
+          <div class="bot-name">🤖 Bot Gamma — EUR/USD</div>
+          <div class="bot-market">FOREX · MT4</div>
+        </div>
+        <span class="bot-pass" style="color:#00d4ff;background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.3)">PRO+</span>
+      </div>
+      <div class="bot-perf">+22.1%</div>
+      <div class="bot-bar-bg"><div class="bot-bar" style="width:44%"></div></div>
+      <div class="bot-stats">
+        <div class="bot-stat">Trades: <strong>234</strong></div>
+        <div class="bot-stat">Win rate: <strong>71%</strong></div>
+        <div class="bot-stat">Drawdown: <strong>2.8%</strong></div>
+      </div>
+    </div>
+
+    <div class="bot">
+      <div class="bot-header">
+        <div>
+          <div class="bot-name">🤖 Bot Delta — SOL/XRP</div>
+          <div class="bot-market">CRYPTO · MULTI</div>
+        </div>
+        <span class="bot-pass" style="color:#ffd700;background:rgba(255,215,0,0.1);border-color:rgba(255,215,0,0.3)">ELITE</span>
+      </div>
+      <div class="bot-perf">+61.4%</div>
+      <div class="bot-bar-bg"><div class="bot-bar" style="width:82%;background:linear-gradient(90deg,#ffd700,#ffaa00)"></div></div>
+      <div class="bot-stats">
+        <div class="bot-stat">Trades: <strong>387</strong></div>
+        <div class="bot-stat">Win rate: <strong>79%</strong></div>
+        <div class="bot-stat">Drawdown: <strong>5.1%</strong></div>
+      </div>
+    </div>
+
+    <div class="bot">
+      <div class="bot-header">
+        <div>
+          <div class="bot-name">🤖 Bot Epsilon — AAPL/TSLA</div>
+          <div class="bot-market">ACTIONS · NYSE</div>
+        </div>
+        <span class="bot-pass" style="color:#ffd700;background:rgba(255,215,0,0.1);border-color:rgba(255,215,0,0.3)">ELITE</span>
+      </div>
+      <div class="bot-perf">+28.9%</div>
+      <div class="bot-bar-bg"><div class="bot-bar" style="width:58%;background:linear-gradient(90deg,#ffd700,#ffaa00)"></div></div>
+      <div class="bot-stats">
+        <div class="bot-stat">Trades: <strong>156</strong></div>
+        <div class="bot-stat">Win rate: <strong>75%</strong></div>
+        <div class="bot-stat">Drawdown: <strong>3.7%</strong></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="section" id="plans">
+  <h2 class="section-title">Choisissez votre <em>Pass</em></h2>
+  <p class="section-sub">PAIEMENT SECURISE VIA PAYPAL · ACCES INSTANTANE</p>
+  <div class="plans">
+
+    <!-- STARTER 9€ -->
+    <div class="plan">
+      <div class="plan-glow"></div>
+      <div class="plan-header">
+        <span class="plan-name">Pass Starter</span>
+        <span class="plan-tag tag-starter">DEBUTANT</span>
+      </div>
+      <div class="plan-price">9€ <span>/ acces</span></div>
+      <ul class="plan-features">
+        <li>Acces aux Bots Alpha et Beta (Crypto)</li>
+        <li>Signaux de trading en temps reel</li>
+        <li>Dashboard de performances</li>
+        <li>Marches Crypto (BTC, ETH)</li>
+        <li>Support par email</li>
+      </ul>
+      <a href="https://paypal.me/mangaforge1/9" target="_blank" class="pay-btn btn-starter">
+        Payer 9€ via PayPal
+      </a>
+    </div>
+
+    <!-- PRO 19€ -->
+    <div class="plan popular">
+      <div class="plan-glow"></div>
+      <div class="plan-header">
+        <span class="plan-name">Pass Pro</span>
+        <span class="plan-tag tag-pro">POPULAIRE</span>
+      </div>
+      <div class="plan-price">19€ <span>/ acces</span></div>
+      <ul class="plan-features">
+        <li>Tout du Pass Starter</li>
+        <li>Bot Gamma — Forex EUR/USD</li>
+        <li>Acces multi-marches (Crypto + Forex)</li>
+        <li>Alertes SMS et notifications push</li>
+        <li>Rapports hebdomadaires detailles</li>
+        <li>Support prioritaire 24h</li>
+      </ul>
+      <a href="https://paypal.me/mangaforge1/19" target="_blank" class="pay-btn btn-pro">
+        Payer 19€ via PayPal
+      </a>
+    </div>
+
+    <!-- ELITE 49€ -->
+    <div class="plan elite">
+      <div class="plan-glow"></div>
+      <div class="plan-header">
+        <span class="plan-name">Pass Elite</span>
+        <span class="plan-tag tag-elite">PREMIUM</span>
+      </div>
+      <div class="plan-price" style="color:var(--gold)">49€ <span>/ acces</span></div>
+      <ul class="plan-features">
+        <li>Acces TOUS les bots (5 bots actifs)</li>
+        <li>Crypto + Forex + Actions (NYSE)</li>
+        <li>Bot Delta et Epsilon exclusifs</li>
+        <li>Copie automatique des trades</li>
+        <li>Analyse IA personnalisee</li>
+        <li>Support VIP direct WhatsApp</li>
+        <li>Mises a jour futures incluses</li>
+      </ul>
+      <a href="https://paypal.me/mangaforge1/49" target="_blank" class="pay-btn btn-elite">
+        Payer 49€ via PayPal
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- SECURE -->
+<div class="secure">
+  <div class="secure-icons">
+    <div class="secure-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      PAIEMENT SECURISE
+    </div>
+    <div class="secure-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      SSL PROTEGE
+    </div>
+    <div class="secure-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      ACCES INSTANTANE
+    </div>
+  </div>
+  Paiement via PayPal · Sebastien Figari · Remboursement sous 24h si probleme
+</div>
+
+<footer>
+  © 2026 <strong>Nexus Trading IA</strong> · Tous droits reserves · figarisebastien4-beep.github.io
+</footer>
+
+</body>
+</html>
